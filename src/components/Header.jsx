@@ -3,11 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
-  const user = null; 
+  const handleLogout = async () => {
+    const result = await logout();
+    if (result.success) {
+      setIsMenuOpen(false);
+    }
+  };
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -20,7 +27,6 @@ export default function Header() {
     <header className="bg-white shadow-md sticky top-0 z-50">
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-white font-bold text-xl">C</span>
@@ -29,8 +35,6 @@ export default function Header() {
               CareNest
             </span>
           </Link>
-
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
@@ -44,7 +48,6 @@ export default function Header() {
             ))}
           </div>
 
-          {/* Auth Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
@@ -54,7 +57,10 @@ export default function Header() {
                 >
                   My Bookings
                 </Link>
-                <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
                   Logout
                 </button>
               </>
@@ -134,7 +140,10 @@ export default function Header() {
                     >
                       My Bookings
                     </Link>
-                    <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                    <button
+                      onClick={handleLogout}
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    >
                       Logout
                     </button>
                   </>
