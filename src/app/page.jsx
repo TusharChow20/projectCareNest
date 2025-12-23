@@ -1,9 +1,24 @@
 "use client";
-
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import Image from "next/image";
+
+const heroImages = [
+  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&w=1600&q=80",
+  "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=1600&q=80",
+];
 
 export default function HomePage() {
+  const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % heroImages.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
   const services = [
     {
       id: 1,
@@ -77,10 +92,20 @@ export default function HomePage() {
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7 }}
-            className="flex justify-center"
+            className="relative w-full h-[420px] rounded-2xl overflow-hidden shadow-xl"
           >
-            <div className="bg-[#111827] p-10 rounded-2xl shadow-xl">
-              <span className="text-8xl">👨‍👩‍👧‍👦</span>
+            <Image
+              src={heroImages[currentImage]}
+              alt="Caregiving service"
+              fill
+              priority
+              className="relative w-full h-[420px] rounded-2xl overflow-hidden"
+            />
+
+            <div className="absolute inset-0 bg-black/40 flex items-end p-6">
+              <p className="text-lg font-semibold text-white">
+                Trusted Care for Your Loved Ones
+              </p>
             </div>
           </motion.div>
         </div>
@@ -134,6 +159,50 @@ export default function HomePage() {
                 >
                   Learn more →
                 </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+      {/* TESTIMONIALS */}
+      <section className="py-24 bg-[#0F172A]">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold">What Families Say</h2>
+            <p className="mt-4 text-gray-400">
+              Real stories from families who trust CareNest
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            {[
+              {
+                name: "Ayesha Rahman",
+                role: "Mother of 2",
+                text: "CareNest gave us peace of mind. The babysitter was professional, caring, and reliable.",
+              },
+              {
+                name: "Mahmud Hasan",
+                role: "Son & Caregiver",
+                text: "The elderly care service was outstanding. My father felt respected and comfortable.",
+              },
+              {
+                name: "Nusrat Jahan",
+                role: "Working Professional",
+                text: "Medical home care support was timely and compassionate. Highly recommended.",
+              },
+            ].map((t, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="bg-[#111827] p-8 rounded-2xl border border-gray-800"
+              >
+                <p className="text-gray-300 mb-6">“{t.text}”</p>
+                <h4 className="font-semibold">{t.name}</h4>
+                <p className="text-sm text-gray-400">{t.role}</p>
               </motion.div>
             ))}
           </div>
