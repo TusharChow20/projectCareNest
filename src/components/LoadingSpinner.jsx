@@ -15,7 +15,7 @@ export default function LoadingSpinner({ size = "md", fullScreen = false }) {
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+      <div className="fixed inset-0  bg-opacity-90 flex items-center justify-center z-50">
         <div className="text-center">
           {spinner}
           <p className="mt-4 text-gray-600 font-medium">Loading...</p>
