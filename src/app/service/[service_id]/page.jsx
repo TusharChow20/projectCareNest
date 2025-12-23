@@ -176,6 +176,7 @@ export default function BookingPage() {
       userName: user.displayName || user.email.split("@")[0],
       serviceId: service.id,
       serviceName: service.title,
+      serviceIcon: service.image, // Add the image as icon
       duration: bookingData.duration,
       durationType: bookingData.durationType,
       location: {
@@ -195,35 +196,27 @@ export default function BookingPage() {
     console.log("📧 User email:", booking.userEmail);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log("✅ Booking saved to database");
-      console.log("📤 Attempting to send email...");
-
-      const emailResponse = await fetch("/api/send-booking-email", {
+      // SAVE TO DATABASE FIRST via API
+      const bookingResponse = await fetch("/api/bookings", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(booking),
       });
 
-      const emailResult = await emailResponse.json();
-      console.log("📧 Email API response:", emailResult);
-
-      if (emailResult.success) {
-        console.log("✅ Email sent successfully!");
-        setToast({
-          message: "✅ Booking confirmed! Check your email for details.",
-          type: "success",
-        });
-      } else {
-        console.warn("⚠️ Email failed but booking saved:", emailResult.error);
-        setToast({
-          message: "✅ Booking confirmed! (Email notification pending)",
-          type: "success",
-        });
+      if (!bookingResponse.ok) {
+        throw new Error("Failed to save booking");
       }
+
+      const bookingResult = await bookingResponse.json();
+      console.log("✅ Booking saved to database:", bookingResult);
+
+      // Email is sent automatically by the API route
+      console.log("✅ Booking created successfully!");
+
+      setToast({
+        message: "✅ Booking confirmed! Check your email for details.",
+        type: "success",
+      });
 
       setTimeout(() => {
         router.push("/my-bookings");

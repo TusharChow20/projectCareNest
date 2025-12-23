@@ -9,6 +9,8 @@ const nextConfig = {
       },
     ],
   },
+  turbopack: {},
+
   reactCompiler: true,
 };
 

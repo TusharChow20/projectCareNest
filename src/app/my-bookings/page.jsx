@@ -28,71 +28,21 @@ export default function MyBookingsPage() {
       setLoading(true);
 
       try {
-        const mockBookings = [
-          {
-            id: "BK001",
-            serviceId: 1,
-            serviceName: "Baby Sitting",
-            serviceIcon: "👶",
-            duration: 4,
-            durationType: "hours",
-            location: {
-              area: "Gulshan",
-              city: "Dhaka City",
-              district: "Dhaka",
-              division: "Dhaka",
-              fullAddress: "House 45, Road 12, Gulshan 1",
-            },
-            totalCost: 2000,
-            status: "Confirmed",
-            createdAt: "2024-12-20T10:30:00Z",
-            specialInstructions: "Please bring toys for 3-year-old",
-          },
-          {
-            id: "BK002",
-            serviceId: 2,
-            serviceName: "Elderly Care",
-            serviceIcon: "👴",
-            duration: 2,
-            durationType: "days",
-            location: {
-              area: "Banani",
-              city: "Dhaka City",
-              district: "Dhaka",
-              division: "Dhaka",
-              fullAddress: "Flat 7B, Road 11, Banani",
-            },
-            totalCost: 28800,
-            status: "Pending",
-            createdAt: "2024-12-22T14:20:00Z",
-          },
-          {
-            id: "BK003",
-            serviceId: 3,
-            serviceName: "Sick People Care",
-            serviceIcon: "🏥",
-            duration: 8,
-            durationType: "hours",
-            location: {
-              area: "Dhanmondi",
-              city: "Dhaka City",
-              district: "Dhaka",
-              division: "Dhaka",
-              fullAddress: "House 32, Road 5, Dhanmondi",
-            },
-            totalCost: 5600,
-            status: "Completed",
-            createdAt: "2024-12-15T09:00:00Z",
-          },
-        ];
+        const userId = user.uid || user.email;
+        const response = await fetch(
+          `/api/bookings?userId=${encodeURIComponent(userId)}`
+        );
 
-        setTimeout(() => {
-          setBookings(mockBookings);
-          setLoading(false);
-        }, 800);
+        if (!response.ok) {
+          throw new Error("Failed to fetch bookings");
+        }
+
+        const data = await response.json();
+        setBookings(data.bookings || []);
       } catch (error) {
         console.error("Error fetching bookings:", error);
         setToast({ message: "Failed to load bookings", type: "error" });
+      } finally {
         setLoading(false);
       }
     };
@@ -124,6 +74,25 @@ export default function MyBookingsPage() {
     }
 
     try {
+      const userId = user.uid || user.email;
+      const response = await fetch("/api/bookings", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          bookingId,
+          status: "Cancelled",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to cancel booking");
+      }
+
+      const result = await response.json();
+
       setBookings((prevBookings) =>
         prevBookings.map((booking) =>
           booking.id === bookingId
@@ -136,6 +105,41 @@ export default function MyBookingsPage() {
     } catch (error) {
       console.error("Error cancelling booking:", error);
       setToast({ message: "Failed to cancel booking", type: "error" });
+    }
+  };
+
+  const handleDeleteBooking = async (bookingId) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this booking? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const userId = user.uid || user.email;
+      const response = await fetch(
+        `/api/bookings?userId=${encodeURIComponent(
+          userId
+        )}&bookingId=${encodeURIComponent(bookingId)}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete booking");
+      }
+
+      setBookings((prevBookings) =>
+        prevBookings.filter((booking) => booking.id !== bookingId)
+      );
+
+      setToast({ message: "Booking deleted successfully", type: "success" });
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      setToast({ message: "Failed to delete booking", type: "error" });
     }
   };
 
@@ -317,7 +321,6 @@ export default function MyBookingsPage() {
                       </div>
                     </div>
 
-                    {/* Right Column */}
                     <div className="space-y-3">
                       <div className="flex items-start space-x-3">
                         <svg
@@ -409,6 +412,16 @@ export default function MyBookingsPage() {
                         className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-shadow"
                       >
                         Book Again
+                      </button>
+                    )}
+
+                    {(booking.status === "Cancelled" ||
+                      booking.status === "Completed") && (
+                      <button
+                        onClick={() => handleDeleteBooking(booking.id)}
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                      >
+                        Delete
                       </button>
                     )}
                   </div>
