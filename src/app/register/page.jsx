@@ -125,7 +125,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4">
+    <div className="min-h-screen  py-12 px-4">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
       <motion.div
@@ -134,18 +134,18 @@ export default function RegisterPage() {
         className="max-w-md mx-auto"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-gray-100 mb-2">
             Create Account
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-300">
             Join CareNest and find trusted caregivers
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className=" rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Full Name *
               </label>
               <input
@@ -164,7 +164,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Email Address *
               </label>
               <input
@@ -183,7 +183,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 NID Number *
               </label>
               <input
@@ -202,7 +202,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Contact Number *
               </label>
               <input
@@ -223,7 +223,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Password *
               </label>
               <input
@@ -242,7 +242,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Confirm Password *
               </label>
               <input
@@ -264,7 +264,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full px-6 py-3 border cursor-pointer text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </button>
@@ -275,7 +275,7 @@ export default function RegisterPage() {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
+              <span className="px-2 bg-gray-600  text-gray-100">
                 Or continue with
               </span>
             </div>
@@ -284,7 +284,7 @@ export default function RegisterPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-500 cursor-pointer transition-colors flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path

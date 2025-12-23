@@ -90,7 +90,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4 flex items-center">
+    <div className="min-h-screen  py-12 px-4 flex items-center">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
       <motion.div
@@ -99,16 +99,16 @@ export default function LoginPage() {
         className="max-w-md mx-auto w-full"
       >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-4xl font-bold text-gray-100 mb-2">
             Welcome Back
           </h1>
-          <p className="text-gray-600">Sign in to your CareNest account</p>
+          <p className="text-gray-300">Sign in to your CareNest account</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className=" rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-200 mb-2">
                 Email Address
               </label>
               <input
@@ -127,7 +127,7 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-100 mb-2">
                 Password
               </label>
               <input
@@ -135,7 +135,7 @@ export default function LoginPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-transparent transition-all ${
                   errors.password ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="Enter your password"
@@ -156,7 +156,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full px-6 py-3 border cursor-pointer text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {loading ? "Signing In..." : "Sign In"}
             </button>
@@ -166,7 +166,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
+              <span className="px-2 bg-gray-300 text-gray-900">
                 Or continue with
               </span>
             </div>
@@ -174,7 +174,7 @@ export default function LoginPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-500 cursor-pointer transition-colors flex items-center justify-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
