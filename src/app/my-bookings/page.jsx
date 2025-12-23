@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Toast from "@/components/Toast";
+import Image from "next/image";
 
 export default function MyBookingsPage() {
   const router = useRouter();
@@ -159,18 +160,18 @@ export default function MyBookingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screenpy-12">
       {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
       <div className="container mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">My Bookings</h1>
-          <p className="text-gray-600">
+          <h1 className="text-4xl font-bold text-gray-200 mb-2">My Bookings</h1>
+          <p className="text-gray-300">
             Manage and track all your service bookings
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-2 mb-8 inline-flex space-x-2">
+        <div className=" rounded-lg shadow-md p-2 mb-8 inline-flex space-x-2">
           {["all", "pending", "confirmed", "completed", "cancelled"].map(
             (status) => (
               <button
@@ -179,7 +180,7 @@ export default function MyBookingsPage() {
                 className={`px-4 py-2 rounded-lg font-medium capitalize transition-all ${
                   filter === status
                     ? "bg-blue-600 text-white"
-                    : "text-gray-600 hover:bg-gray-100"
+                    : "text-gray-300 hover:bg-gray-800"
                 }`}
               >
                 {status}
@@ -189,9 +190,9 @@ export default function MyBookingsPage() {
         </div>
 
         {filteredBookings.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+          <div className=" rounded-2xl shadow-lg p-12 text-center">
             <svg
-              className="w-24 h-24 mx-auto text-gray-400 mb-4"
+              className="w-24 h-24 mx-auto text-gray-200 mb-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -226,17 +227,25 @@ export default function MyBookingsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+                className=" rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
               >
                 <div className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
                     <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                      <div className="text-5xl">{booking.serviceIcon}</div>
+                      <div className="text-5xl">
+                        <Image
+                          src={booking.serviceIcon}
+                          alt="Photo"
+                          height={90}
+                          width={90}
+                          className="rounded-full"
+                        ></Image>
+                      </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">
+                        <h3 className="text-2xl font-bold text-gray-200">
                           {booking.serviceName}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-400">
                           Booking ID: {booking.id}
                         </p>
                       </div>
@@ -267,8 +276,8 @@ export default function MyBookingsPage() {
                           />
                         </svg>
                         <div>
-                          <p className="text-sm text-gray-500">Duration</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-sm text-gray-200">Duration</p>
+                          <p className="font-medium text-gray-200">
                             {booking.duration} {booking.durationType}
                             {booking.durationType === "days" &&
                               ` (${booking.duration * 24} hours)`}
@@ -314,7 +323,7 @@ export default function MyBookingsPage() {
                         </svg>
                         <div>
                           <p className="text-sm text-gray-500">Booked On</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-200">
                             {formatDate(booking.createdAt)}
                           </p>
                         </div>
@@ -346,7 +355,7 @@ export default function MyBookingsPage() {
                           <p className="text-sm text-gray-500">
                             Service Location
                           </p>
-                          <p className="font-medium text-gray-900 leading-relaxed">
+                          <p className="font-medium text-gray-200 leading-relaxed">
                             {booking.location.fullAddress}
                             <br />
                             {booking.location.area}, {booking.location.city}
@@ -376,7 +385,7 @@ export default function MyBookingsPage() {
                             <p className="text-sm text-gray-500">
                               Special Instructions
                             </p>
-                            <p className="text-gray-700">
+                            <p className="text-gray-300">
                               {booking.specialInstructions}
                             </p>
                           </div>
