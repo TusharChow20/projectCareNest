@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { divisions, districts, cities, areas } from "@/data/locations";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -48,21 +49,48 @@ export default function BookingPage() {
           title: "Baby Sitting",
           price: 500,
           unit: "hour",
-          icon: "👶",
+          image:
+            "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800&q=80",
         },
         2: {
           id: 2,
           title: "Elderly Care",
           price: 600,
           unit: "hour",
-          icon: "👴",
+          image:
+            "https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&q=80",
         },
         3: {
           id: 3,
           title: "Sick People Care",
           price: 700,
           unit: "hour",
-          icon: "🏥",
+          image:
+            "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=800&q=80",
+        },
+        4: {
+          id: 4,
+          title: "Disability Care",
+          price: 650,
+          unit: "hour",
+          image:
+            "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800&q=80",
+        },
+        5: {
+          id: 5,
+          title: "Overnight Care",
+          price: 800,
+          unit: "hour",
+          image:
+            "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=800&q=80",
+        },
+        6: {
+          id: 6,
+          title: "Companion Care",
+          price: 450,
+          unit: "hour",
+          image:
+            "https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?w=800&q=80",
         },
       };
 
@@ -139,11 +167,10 @@ export default function BookingPage() {
   const handleSubmit = async () => {
     setSubmitting(true);
 
-    // Generate unique booking ID
     const bookingId = "BK-" + Date.now();
 
     const booking = {
-      id: bookingId, // ⭐ ADDED BOOKING ID
+      id: bookingId,
       userId: user.uid,
       userEmail: user.email,
       userName: user.displayName || user.email.split("@")[0],
@@ -168,13 +195,11 @@ export default function BookingPage() {
     console.log("📧 User email:", booking.userEmail);
 
     try {
-      // Simulate saving to database
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       console.log("✅ Booking saved to database");
       console.log("📤 Attempting to send email...");
 
-      // ⭐ THIS IS THE MISSING PART - ACTUALLY SEND THE EMAIL!
       const emailResponse = await fetch("/api/send-booking-email", {
         method: "POST",
         headers: {
@@ -200,7 +225,6 @@ export default function BookingPage() {
         });
       }
 
-      // Redirect after showing toast
       setTimeout(() => {
         router.push("/my-bookings");
       }, 2500);
@@ -243,7 +267,14 @@ export default function BookingPage() {
 
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4">{service.icon}</div>
+          <div className="relative w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden">
+            <Image
+              src={service.image}
+              alt={service.title}
+              fill
+              className="object-cover"
+            />
+          </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Book {service.title}
           </h1>

@@ -59,7 +59,7 @@ export default function HomePage() {
 
             <div className="mt-8 flex gap-4">
               <Link
-                href="#services"
+                href="/services"
                 className="px-8 py-4 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition"
               >
                 Explore Services
@@ -141,7 +141,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-gradient-to-r from-blue-600 to-violet-600 text-center">
+      <section className="py-24 text-center">
         <h2 className="text-4xl font-bold mb-6">Ready to Get Started?</h2>
         <p className="max-w-2xl mx-auto text-blue-100 mb-8">
           Join thousands of families who trust CareNest for professional,
