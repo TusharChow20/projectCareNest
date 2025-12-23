@@ -18,15 +18,16 @@ export default function Header() {
 
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Services", path: "/#services" },
-    { name: "About", path: "/#about" },
-    { name: "Contact", path: "/#contact" },
+    { name: "Services", path: "/services" },
+    { name: "About", path: "/about" },
+    { name: "Contact", path: "/contact" },
   ];
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header className="bg-white dark:bg-[#0B0F19] shadow-md sticky top-0 z-50 transition-colors">
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
+          {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 group">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
               <span className="text-white font-bold text-xl">C</span>
@@ -35,31 +36,34 @@ export default function Header() {
               CareNest
             </span>
           </Link>
+
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 href={link.path}
-                className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300 relative group"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors relative group"
               >
                 {link.name}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all"></span>
               </Link>
             ))}
           </div>
 
+          {/* Auth Buttons - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
                 <Link
                   href="/my-bookings"
-                  className="text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium transition-colors"
                 >
                   My Bookings
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                 >
                   Logout
                 </button>
@@ -68,13 +72,13 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                  className="px-4 py-2 text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition font-medium"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300 font-medium"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition font-medium"
                 >
                   Sign Up
                 </Link>
@@ -82,9 +86,10 @@ export default function Header() {
             )}
           </div>
 
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden text-gray-700 focus:outline-none"
+            className="md:hidden text-gray-700 dark:text-gray-300"
           >
             <svg
               className="w-6 h-6"
@@ -111,6 +116,7 @@ export default function Header() {
           </button>
         </div>
 
+        {/* Mobile Menu */}
         <AnimatePresence>
           {isMenuOpen && (
             <motion.div
@@ -125,7 +131,7 @@ export default function Header() {
                     key={link.path}
                     href={link.path}
                     onClick={() => setIsMenuOpen(false)}
-                    className="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium py-2 px-4 hover:bg-blue-50 dark:hover:bg-gray-800 rounded-lg transition"
                   >
                     {link.name}
                   </Link>
@@ -136,13 +142,13 @@ export default function Header() {
                     <Link
                       href="/my-bookings"
                       onClick={() => setIsMenuOpen(false)}
-                      className="text-gray-700 hover:text-blue-600 font-medium py-2 px-4 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="text-gray-700 dark:text-gray-300 hover:text-blue-600 font-medium py-2 px-4 hover:bg-blue-50 dark:hover:bg-gray-800 rounded-lg transition"
                     >
                       My Bookings
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                     >
                       Logout
                     </button>
@@ -152,7 +158,7 @@ export default function Header() {
                     <Link
                       href="/login"
                       onClick={() => setIsMenuOpen(false)}
-                      className="px-4 py-2 text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-center font-medium"
+                      className="px-4 py-2 text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition text-center font-medium"
                     >
                       Login
                     </Link>
