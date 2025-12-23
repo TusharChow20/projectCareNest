@@ -2,6 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function AboutPage() {
   const team = [
@@ -108,8 +109,14 @@ export default function AboutPage() {
               viewport={{ once: true }}
               className="relative"
             >
-              <div className="aspect-square   rounded-2xl flex items-center justify-center text-9xl">
-                💙
+              <div className="relative aspect-square rounded-2xl overflow-hidden shadow-xl">
+                <Image
+                  src="https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200&auto=format&fit=crop"
+                  alt="Compassionate professional caregiving at CareNest"
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
             </motion.div>
           </div>
