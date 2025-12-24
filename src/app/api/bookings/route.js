@@ -185,45 +185,55 @@ export async function PATCH(request) {
 
     await ensureTableExists();
 
-    // Build update query dynamically
-    const updateFields = [];
-    const values = [];
+    // Simple status update (most common case - for Cancel)
+    if (status && !updates) {
+      const result = await sql`
+        UPDATE bookings 
+        SET status = ${status}, updated_at = NOW()
+        WHERE id = ${bookingId} AND user_id = ${userId}
+        RETURNING *
+      `;
 
-    if (status) {
-      updateFields.push("status = $" + (values.length + 1));
-      values.push(status);
-    }
+      if (result.length === 0) {
+        return NextResponse.json(
+          { error: "Booking not found" },
+          { status: 404 }
+        );
+      }
 
-    if (updates) {
-      Object.entries(updates).forEach(([key, value]) => {
-        const dbKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
-        updateFields.push(`${dbKey} = $${values.length + 1}`);
-        values.push(value);
+      console.log("✅ Booking updated:", bookingId, "Status:", status);
+
+      return NextResponse.json({
+        success: true,
+        message: "Booking updated successfully",
       });
     }
 
-    updateFields.push("updated_at = NOW()");
+    // If there are additional updates (for future use)
+    if (updates) {
+      // Handle custom updates here if needed
+      // For now, just update status
+      const result = await sql`
+        UPDATE bookings 
+        SET status = ${status || "Pending"}, updated_at = NOW()
+        WHERE id = ${bookingId} AND user_id = ${userId}
+        RETURNING *
+      `;
 
-    values.push(bookingId);
-    values.push(userId);
+      if (result.length === 0) {
+        return NextResponse.json(
+          { error: "Booking not found" },
+          { status: 404 }
+        );
+      }
 
-    const result = await sql`
-      UPDATE bookings 
-      SET ${sql.raw(updateFields.join(", "))}
-      WHERE id = ${bookingId} AND user_id = ${userId}
-      RETURNING *
-    `;
-
-    if (result.length === 0) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+      return NextResponse.json({
+        success: true,
+        message: "Booking updated successfully",
+      });
     }
 
-    console.log("✅ Booking updated:", bookingId);
-
-    return NextResponse.json({
-      success: true,
-      message: "Booking updated successfully",
-    });
+    return NextResponse.json({ error: "No updates provided" }, { status: 400 });
   } catch (error) {
     console.error("❌ Error updating booking:", error);
     return NextResponse.json(

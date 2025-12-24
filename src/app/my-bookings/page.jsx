@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Toast from "@/components/Toast";
 import Image from "next/image";
+import Swal from "sweetalert2";
 
 export default function MyBookingsPage() {
   const router = useRouter();
@@ -47,6 +48,109 @@ export default function MyBookingsPage() {
 
     fetchBookings();
   }, [user]);
+
+  const handleCancelBooking = async (bookingId) => {
+    const result = await Swal.fire({
+      title: "Cancel Booking?",
+      text: "Are you sure you want to cancel this booking?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, cancel it!",
+      cancelButtonText: "No, keep it",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      const userId = user.uid || user.email;
+      const res = await fetch(`/api/bookings`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: userId,
+          bookingId: bookingId,
+          status: "Cancelled",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to cancel booking");
+
+      // Update the local state to reflect the change
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "Cancelled" } : b
+        )
+      );
+
+      Swal.fire({
+        title: "Cancelled!",
+        text: "Your booking has been cancelled successfully.",
+        icon: "success",
+        confirmButtonColor: "#2563eb",
+      });
+    } catch (err) {
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to cancel booking. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
+
+  const handleDeleteBooking = async (bookingId) => {
+    const result = await Swal.fire({
+      title: "Delete Booking?",
+      text: "This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    try {
+      const userId = user.uid || user.email;
+      const res = await fetch(
+        `/api/bookings?userId=${encodeURIComponent(
+          userId
+        )}&bookingId=${bookingId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to delete booking");
+
+      // Remove the booking from local state
+      setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+
+      Swal.fire({
+        title: "Deleted!",
+        text: "Your booking has been deleted successfully.",
+        icon: "success",
+        confirmButtonColor: "#2563eb",
+      });
+    } catch (err) {
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to delete booking. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#ef4444",
+      });
+    }
+  };
 
   const filteredBookings = bookings.filter((b) =>
     filter === "all" ? true : b.status.toLowerCase() === filter
@@ -204,7 +308,10 @@ export default function MyBookingsPage() {
                     </button>
 
                     {booking.status === "Pending" && (
-                      <button className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                      <button
+                        onClick={() => handleCancelBooking(booking.id)}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 cursor-pointer"
+                      >
                         Cancel Booking
                       </button>
                     )}
@@ -222,7 +329,10 @@ export default function MyBookingsPage() {
 
                     {(booking.status === "Cancelled" ||
                       booking.status === "Completed") && (
-                      <button className="px-4 py-2 bg-gray-500 text-white rounded-lg">
+                      <button
+                        onClick={() => handleDeleteBooking(booking.id)}
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                      >
                         Delete
                       </button>
                     )}
