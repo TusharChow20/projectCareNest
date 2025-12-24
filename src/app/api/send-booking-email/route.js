@@ -1,15 +1,22 @@
 import nodemailer from "nodemailer";
 
 export function GET() {
-  return Response.json({ message: "Booking email API is active" });
+  return Response.json({
+    message: "Booking email API is active",
+    env: {
+      emailUser: process.env.EMAIL_USER ? "✓ Set" : "✗ Missing",
+      emailPass: process.env.EMAIL_PASS ? "✓ Set" : "✗ Missing",
+    },
+  });
 }
 
 export async function POST(req) {
-  console.log("📧 Email API called");
+  console.log("📧 Email API called at:", new Date().toISOString());
 
   try {
     const booking = await req.json();
     console.log("📋 Processing booking:", booking.id);
+    console.log("📧 Recipient:", booking.userEmail);
 
     // Validate required fields
     if (!booking.userEmail || !booking.serviceName) {
@@ -20,48 +27,58 @@ export async function POST(req) {
       );
     }
 
-    // SOLUTION: Try multiple connection methods
-    // Method 1: Use port 587 with STARTTLS (more likely to work)
+    // Check environment variables
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error("❌ Email credentials not configured");
+      return Response.json(
+        {
+          success: false,
+          error: "Email credentials not configured",
+          debug: {
+            emailUser: process.env.EMAIL_USER ? "Set" : "Missing",
+            emailPass: process.env.EMAIL_PASS ? "Set" : "Missing",
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    console.log("🔐 Email config:");
+    console.log("   User:", process.env.EMAIL_USER);
+    console.log(
+      "   Pass:",
+      process.env.EMAIL_PASS
+        ? "***" + process.env.EMAIL_PASS.slice(-4)
+        : "Missing"
+    );
+
+    // Create transporter with detailed config
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587, // Changed from 465 to 587
-      secure: false, // true for 465, false for other ports
+      service: "gmail", // Simplified - let nodemailer handle the config
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      tls: {
-        rejectUnauthorized: false, // Allow self-signed certificates
-      },
-      connectionTimeout: 10000, // 10 second timeout
-      greetingTimeout: 10000,
+      debug: true, // Enable debug output
+      logger: true, // Log to console
     });
 
-    console.log("🔐 Email config:", {
-      user: process.env.EMAIL_USER ? "✓ Set" : "✗ Missing",
-      pass: process.env.EMAIL_PASS ? "✓ Set" : "✗ Missing",
-      port: 587,
-    });
-
-    // Verify transporter (with timeout)
-    console.log("🔐 Verifying email credentials...");
+    // Verify connection (with short timeout for Vercel)
+    console.log("🔐 Verifying email connection...");
     try {
       await Promise.race([
         transporter.verify(),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Verification timeout")), 10000)
+          setTimeout(() => reject(new Error("Verification timeout")), 5000)
         ),
       ]);
-      console.log("✅ Email transporter verified");
+      console.log("✅ Email transporter verified successfully");
     } catch (verifyError) {
-      console.error(
-        "⚠️ Verification failed, but continuing:",
-        verifyError.message
-      );
-      // Continue anyway - sometimes verify fails but sending works
+      console.warn("⚠️ Verification failed:", verifyError.message);
+      console.warn("⚠️ Attempting to send anyway...");
     }
 
-    // Create detailed email content
+    // Create email content
     const emailHtml = `
       <!DOCTYPE html>
       <html>
@@ -155,11 +172,6 @@ export async function POST(req) {
 
               <div class="footer">
                 <p>Need help? Contact us at support@carenest.com</p>
-                <p style="margin-top: 10px;">
-                  <a href="https://carenest.com" style="color: #2563eb; text-decoration: none;">
-                    Visit CareNest
-                  </a>
-                </p>
               </div>
             </div>
           </div>
@@ -193,13 +205,13 @@ TOTAL AMOUNT: ৳${booking.totalCost.toLocaleString()}
 (Payment after service completion)
 
 Our team will contact you within 24 hours.
-Track your booking at: https://carenest.com/my-bookings
 
 Need help? Contact: support@carenest.com
     `;
 
-    // Send email with timeout
-    console.log("📤 Attempting to send email...");
+    // Send email with timeout (8 seconds for Vercel's 10s limit)
+    console.log("📤 Sending email to:", booking.userEmail);
+
     const info = await Promise.race([
       transporter.sendMail({
         from: `"CareNest Bookings" <${process.env.EMAIL_USER}>`,
@@ -210,14 +222,15 @@ Need help? Contact: support@carenest.com
       }),
       new Promise((_, reject) =>
         setTimeout(
-          () => reject(new Error("Send timeout after 20 seconds")),
-          20000
+          () => reject(new Error("Email send timeout after 8 seconds")),
+          8000
         )
       ),
     ]);
 
-    console.log("✅ Email sent successfully:", info.messageId);
-    console.log("📧 Sent to:", booking.userEmail);
+    console.log("✅ Email sent successfully!");
+    console.log("📧 Message ID:", info.messageId);
+    console.log("📧 Response:", info.response);
 
     return Response.json({
       success: true,
@@ -226,17 +239,30 @@ Need help? Contact: support@carenest.com
     });
   } catch (error) {
     console.error("❌ Email sending failed:");
-    console.error("Error name:", error.name);
-    console.error("Error message:", error.message);
-    console.error("Error code:", error.code);
+    console.error("   Error name:", error.name);
+    console.error("   Error message:", error.message);
+    console.error("   Error code:", error.code);
+    console.error("   Stack:", error.stack);
 
-    // Provide helpful error messages
+    // Detailed error messages
     let userMessage = "Failed to send confirmation email";
-    if (error.code === "ESOCKET" || error.code === "ETIMEDOUT") {
-      userMessage =
-        "Email service temporarily unavailable. Your booking is saved, but email notification failed.";
-    } else if (error.code === "EAUTH") {
-      userMessage = "Email authentication failed. Please contact support.";
+    let troubleshooting = "";
+
+    if (error.code === "EAUTH" || error.message.includes("authentication")) {
+      userMessage = "Email authentication failed";
+      troubleshooting =
+        "Check if you're using a Gmail App Password (not regular password)";
+    } else if (
+      error.code === "ESOCKET" ||
+      error.code === "ETIMEDOUT" ||
+      error.message.includes("timeout")
+    ) {
+      userMessage = "Email service timeout";
+      troubleshooting =
+        "Gmail SMTP may be blocked or slow. Consider using a different email service.";
+    } else if (error.code === "ECONNECTION") {
+      userMessage = "Cannot connect to email server";
+      troubleshooting = "Check your internet connection and Gmail settings";
     }
 
     return Response.json(
@@ -244,7 +270,12 @@ Need help? Contact: support@carenest.com
         success: false,
         error: error.message,
         code: error.code,
-        details: userMessage,
+        userMessage,
+        troubleshooting,
+        debug: {
+          emailUser: process.env.EMAIL_USER ? "Set" : "Missing",
+          emailPass: process.env.EMAIL_PASS ? "Set" : "Missing",
+        },
       },
       { status: 500 }
     );

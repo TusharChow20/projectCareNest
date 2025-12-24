@@ -62,7 +62,7 @@ export async function generateMetadata({ params }) {
     openGraph: {
       title: `${service.title} | CareNest`,
       description: service.description,
-      url: `http://localhost:3000/service/${id}`,
+      url: `https://carenest-ecru.vercel.app/service/${id}`,
       siteName: "CareNest",
       images: [
         {

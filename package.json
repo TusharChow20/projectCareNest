@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@vercel/kv": "^3.0.0",
     "axios": "^1.13.2",
     "emailjs-com": "^3.2.0",
     "firebase": "^12.7.0",
