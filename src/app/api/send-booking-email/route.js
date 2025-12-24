@@ -1,11 +1,26 @@
-import nodemailer from "nodemailer";
+// app/api/send-booking-email/route.js
+import * as brevo from "@getbrevo/brevo";
+
+// Initialize Brevo API
+let apiInstance = null;
+
+function getBrevoClient() {
+  if (!apiInstance) {
+    apiInstance = new brevo.TransactionalEmailsApi();
+    apiInstance.setApiKey(
+      brevo.TransactionalEmailsApiApiKeys.apiKey,
+      process.env.BREVO_API_KEY
+    );
+  }
+  return apiInstance;
+}
 
 export function GET() {
   return Response.json({
-    message: "Booking email API is active",
+    message: "Booking email API is active (Brevo)",
     env: {
-      emailUser: process.env.EMAIL_USER ? "✓ Set" : "✗ Missing",
-      emailPass: process.env.EMAIL_PASS ? "✓ Set" : "✗ Missing",
+      brevoApiKey: process.env.BREVO_API_KEY ? "✓ Set" : "✗ Missing",
+      senderEmail: process.env.SENDER_EMAIL ? "✓ Set" : "✗ Missing",
     },
   });
 }
@@ -28,55 +43,25 @@ export async function POST(req) {
     }
 
     // Check environment variables
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.error("❌ Email credentials not configured");
+    if (!process.env.BREVO_API_KEY) {
+      console.error("❌ Brevo API key not configured");
       return Response.json(
         {
           success: false,
-          error: "Email credentials not configured",
+          error: "Email service not configured",
           debug: {
-            emailUser: process.env.EMAIL_USER ? "Set" : "Missing",
-            emailPass: process.env.EMAIL_PASS ? "Set" : "Missing",
+            brevoApiKey: "Missing",
           },
         },
         { status: 500 }
       );
     }
 
-    console.log("🔐 Email config:");
-    console.log("   User:", process.env.EMAIL_USER);
+    console.log("🔐 Brevo API configured");
     console.log(
-      "   Pass:",
-      process.env.EMAIL_PASS
-        ? "***" + process.env.EMAIL_PASS.slice(-4)
-        : "Missing"
+      "   Sender:",
+      process.env.SENDER_EMAIL || "carenest039@gmail.com"
     );
-
-    // Create transporter with detailed config
-    const transporter = nodemailer.createTransport({
-      service: "gmail", // Simplified - let nodemailer handle the config
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-      debug: true, // Enable debug output
-      logger: true, // Log to console
-    });
-
-    // Verify connection (with short timeout for Vercel)
-    console.log("🔐 Verifying email connection...");
-    try {
-      await Promise.race([
-        transporter.verify(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Verification timeout")), 5000)
-        ),
-      ]);
-      console.log("✅ Email transporter verified successfully");
-    } catch (verifyError) {
-      console.warn("⚠️ Verification failed:", verifyError.message);
-      console.warn("⚠️ Attempting to send anyway...");
-    }
 
     // Create email content
     const emailHtml = `
@@ -118,7 +103,9 @@ export async function POST(req) {
               <h2 style="color: #111827; margin-top: 30px;">Service Details</h2>
               <div class="detail-row">
                 <span class="label">Service</span>
-                <span class="value">${booking.serviceName}</span>
+                <span class="value">${booking.serviceIcon || "👤"} ${
+      booking.serviceName
+    }</span>
               </div>
               <div class="detail-row">
                 <span class="label">Duration</span>
@@ -132,11 +119,17 @@ export async function POST(req) {
                   booking.status
                 }</span></span>
               </div>
+              <div class="detail-row">
+                <span class="label">Booking Date</span>
+                <span class="value">${new Date().toLocaleDateString(
+                  "en-GB"
+                )}</span>
+              </div>
 
               <h2 style="color: #111827; margin-top: 30px;">Service Location</h2>
               <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 15px;">
                 <p style="margin: 0; line-height: 1.8;">
-                  <strong>${booking.location.fullAddress}</strong><br>
+                  <strong>📍 ${booking.location.fullAddress}</strong><br>
                   ${booking.location.area}, ${booking.location.city}<br>
                   ${booking.location.district}, ${booking.location.division}
                 </p>
@@ -170,8 +163,21 @@ export async function POST(req) {
                 </ul>
               </div>
 
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="${
+                  process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+                }/my-bookings" 
+                   style="display: inline-block; padding: 12px 30px; background: #667eea; color: white; 
+                          text-decoration: none; border-radius: 5px; font-weight: 500;">
+                  View My Bookings
+                </a>
+              </div>
+
               <div class="footer">
                 <p>Need help? Contact us at support@carenest.com</p>
+                <p style="margin-top: 10px; font-size: 12px;">
+                  © ${new Date().getFullYear()} CareNest - Professional & Trusted Care Services
+                </p>
               </div>
             </div>
           </div>
@@ -189,6 +195,7 @@ SERVICE DETAILS
 Service: ${booking.serviceName}
 Duration: ${booking.duration} ${booking.durationType}
 Status: ${booking.status}
+Booking Date: ${new Date().toLocaleDateString("en-GB")}
 
 SERVICE LOCATION
 ----------------
@@ -204,77 +211,88 @@ ${
 TOTAL AMOUNT: ৳${booking.totalCost.toLocaleString()}
 (Payment after service completion)
 
-Our team will contact you within 24 hours.
+NEXT STEPS
+----------
+- Our team will contact you within 24 hours
+- Track your booking at: ${
+      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+    }/my-bookings
+- Keep your booking ID for reference
 
 Need help? Contact: support@carenest.com
     `;
 
-    // Send email with timeout (8 seconds for Vercel's 10s limit)
-    console.log("📤 Sending email to:", booking.userEmail);
+    // Prepare Brevo email
+    const sendSmtpEmail = {
+      sender: {
+        name: process.env.SENDER_NAME || "CareNest",
+        email: process.env.SENDER_EMAIL || "carenest039@gmail.com",
+      },
+      to: [
+        {
+          email: booking.userEmail,
+          name: booking.userName || "Valued Customer",
+        },
+      ],
+      subject: `✅ Booking Confirmed - ${booking.serviceName} (${booking.id})`,
+      htmlContent: emailHtml,
+      textContent: emailText,
+    };
 
-    const info = await Promise.race([
-      transporter.sendMail({
-        from: `"CareNest Bookings" <${process.env.EMAIL_USER}>`,
-        to: booking.userEmail,
-        subject: `✅ Booking Confirmed - ${booking.serviceName} (${booking.id})`,
-        text: emailText,
-        html: emailHtml,
-      }),
-      new Promise((_, reject) =>
-        setTimeout(
-          () => reject(new Error("Email send timeout after 8 seconds")),
-          8000
-        )
-      ),
-    ]);
+    // Send email via Brevo
+    console.log("📤 Sending email via Brevo to:", booking.userEmail);
 
-    console.log("✅ Email sent successfully!");
-    console.log("📧 Message ID:", info.messageId);
-    console.log("📧 Response:", info.response);
+    const client = getBrevoClient();
+    const result = await client.sendTransacEmail(sendSmtpEmail);
+
+    console.log("✅ Email sent successfully via Brevo!");
+    console.log("📧 Message ID:", result.messageId);
 
     return Response.json({
       success: true,
-      messageId: info.messageId,
+      messageId: result.messageId,
       recipient: booking.userEmail,
+      service: "brevo",
     });
   } catch (error) {
     console.error("❌ Email sending failed:");
     console.error("   Error name:", error.name);
     console.error("   Error message:", error.message);
-    console.error("   Error code:", error.code);
+    console.error("   Error response:", error.response?.text);
     console.error("   Stack:", error.stack);
 
     // Detailed error messages
     let userMessage = "Failed to send confirmation email";
     let troubleshooting = "";
 
-    if (error.code === "EAUTH" || error.message.includes("authentication")) {
+    if (
+      error.message.includes("API key") ||
+      error.message.includes("authentication")
+    ) {
       userMessage = "Email authentication failed";
       troubleshooting =
-        "Check if you're using a Gmail App Password (not regular password)";
-    } else if (
-      error.code === "ESOCKET" ||
-      error.code === "ETIMEDOUT" ||
-      error.message.includes("timeout")
-    ) {
-      userMessage = "Email service timeout";
+        "Check if your Brevo API key is correct in environment variables";
+    } else if (error.message.includes("sender")) {
+      userMessage = "Sender email not verified";
       troubleshooting =
-        "Gmail SMTP may be blocked or slow. Consider using a different email service.";
-    } else if (error.code === "ECONNECTION") {
-      userMessage = "Cannot connect to email server";
-      troubleshooting = "Check your internet connection and Gmail settings";
+        "Verify your sender email in Brevo dashboard: Settings → Senders";
+    } else if (
+      error.message.includes("quota") ||
+      error.message.includes("limit")
+    ) {
+      userMessage = "Email sending limit reached";
+      troubleshooting = "Check your Brevo account quota or upgrade your plan";
     }
 
     return Response.json(
       {
         success: false,
         error: error.message,
-        code: error.code,
         userMessage,
         troubleshooting,
         debug: {
-          emailUser: process.env.EMAIL_USER ? "Set" : "Missing",
-          emailPass: process.env.EMAIL_PASS ? "Set" : "Missing",
+          brevoApiKey: process.env.BREVO_API_KEY ? "Set" : "Missing",
+          senderEmail: process.env.SENDER_EMAIL || "carenest039@gmail.com",
         },
       },
       { status: 500 }
